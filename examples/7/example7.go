@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/shomali11/slacker"
+	"github.com/kentquirk/slacker"
 )
 
 func main() {

@@ -55,7 +55,7 @@ func NewClient(botToken, appToken string, options ...ClientOption) *Slacker {
 	return slacker
 }
 
-type ActionCallback func(ev slack.InteractionCallback)
+type ActionCallback func(ctx context.Context, ev slack.InteractionCallback)
 
 // Slacker contains the Slack API, botCommands, and handlers
 type Slacker struct {
@@ -196,7 +196,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 					}
 					if s.actionCallback != nil {
 						s.socketModeClient.Debugf("received action callback")
-						s.actionCallback(ev)
+						s.actionCallback(ctx, ev)
 					}
 
 				default:

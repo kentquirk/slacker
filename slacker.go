@@ -55,6 +55,8 @@ func NewClient(botToken, appToken string, options ...ClientOption) *Slacker {
 	return slacker
 }
 
+type ActionCallback func(ev slack.InteractionCallback)
+
 // Slacker contains the Slack API, botCommands, and handlers
 type Slacker struct {
 	client                *slack.Client
@@ -70,7 +72,12 @@ type Slacker struct {
 	defaultEventHandler   func(interface{})
 	unAuthorizedError     error
 	commandChannel        chan *CommandEvent
+	actionCallback        ActionCallback
 	appID                 string
+}
+
+func (s *Slacker) SetCallback(cb ActionCallback) {
+	s.actionCallback = cb
 }
 
 // BotCommands returns Bot Commands
@@ -180,6 +187,17 @@ func (s *Slacker) Listen(ctx context.Context) error {
 					}
 
 					s.socketModeClient.Ack(*evt.Request)
+
+				case socketmode.EventTypeInteractive:
+					ev, ok := evt.Data.(slack.InteractionCallback)
+					if !ok {
+						s.socketModeClient.Debugf("unsupported Interactive event received")
+						continue
+					}
+					if s.actionCallback != nil {
+						s.socketModeClient.Debugf("received action callback")
+						s.actionCallback(ev)
+					}
 
 				default:
 					s.socketModeClient.Debugf("unsupported Events API event received")
